@@ -1,0 +1,45 @@
+{
+  "AWSEBDockerrunVersion": "2",
+  "volumes": [],
+  "containerDefinitions": [
+    {
+      "name": "frontend",
+      "image": "homework4-frontend:latest", 
+      "essential": true,
+      "memory": 128,
+      "cpu": 128,
+      "portMappings": [
+        {
+          "containerPort": 5000,
+          "hostPort": 5000
+        }
+      ]
+    },
+    {
+      "name": "issuer",
+      "image": "homework4-issuer:latest",
+      "essential": true,
+      "memory": 128,
+      "cpu": 128,
+      "portMappings": [
+        {
+          "containerPort": 5001,
+          "hostPort": 5001
+        }
+      ]
+    },
+    {
+      "name": "stockdata",
+      "image": "homework4-stockdata:latest",
+      "essential": true,
+      "memory": 128,
+      "cpu": 128,
+      "portMappings": [
+        {
+          "containerPort": 5002,
+          "hostPort": 5002
+        }
+      ]
+    }
+  ]
+}

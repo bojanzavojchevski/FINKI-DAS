@@ -1,0 +1,7 @@
+FROM python:3.10-slim
+WORKDIR /app
+COPY requirements_stockdata.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+COPY stock_data_service.py .
+EXPOSE 5002
+CMD ["python", "stock_data_service.py"]

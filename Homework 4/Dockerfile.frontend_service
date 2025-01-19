@@ -1,0 +1,29 @@
+FROM python:3.10
+
+# Install the locales package and create the locale
+RUN apt-get update && apt-get install -y \
+    locales && \
+    echo "mk_MK.UTF-8 UTF-8" >> /etc/locale.gen && \
+    locale-gen mk_MK.UTF-8
+
+# Set environment variables for the locale
+ENV LANG=mk_MK.UTF-8
+ENV LANGUAGE=mk_MK.UTF-8
+ENV LC_ALL=mk_MK.UTF-8
+
+WORKDIR /app
+
+# Copy the requirements file and install dependencies
+COPY requirements_frontend.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the Python service file
+COPY frontend_service.py .
+
+# Copy the HTML files from the templates directory into the container
+COPY templates/index.html ./templates/index.html
+COPY templates/data_table.html ./templates/data_table.html
+
+EXPOSE 5000
+
+CMD ["python", "frontend_service.py"]

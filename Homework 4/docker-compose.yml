@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: homework4-frontend:latest  
+    ports:
+      - "5000:5000"
+    depends_on:
+      - issuer
+      - stockdata
+    environment:
+      - ISSUER_SERVICE_URL=http://issuer:5001/issuers
+      - STOCK_DATA_SERVICE_URL=http://stockdata:5002/stockdata
+
+  stockdata:
+    image: homework4-stockdata:latest  
+    ports:
+      - "5002:5002"
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=lajnagomna123
+      - MYSQL_DATABASE=stock_data
+
+  issuer:
+    image: homework4-issuer:latest  
+    ports:
+      - "5001:5001"
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=lajnagomna123
+      - MYSQL_DATABASE=stock_data
+
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: lajnagomna123
+      MYSQL_DATABASE: stock_data
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

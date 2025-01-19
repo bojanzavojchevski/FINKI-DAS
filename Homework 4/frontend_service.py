@@ -16,8 +16,8 @@ def format_macedonian_number(value):
 # Register the filter with Jinja
 app.jinja_env.filters['macedonian_format'] = format_macedonian_number
 
-ISSUER_SERVICE_URL = "http://localhost:5001/issuers"
-STOCK_DATA_SERVICE_URL = "http://localhost:5002/stockdata"
+ISSUER_SERVICE_URL = "http://issuer:5001/issuers"
+STOCK_DATA_SERVICE_URL = "http://stockdata:5002/stockdata"
 
 @app.route('/')
 def index():
@@ -37,4 +37,4 @@ def display_data():
     return render_template('data_table.html', stock_data=stock_data, issuer_code=issuer_code)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
