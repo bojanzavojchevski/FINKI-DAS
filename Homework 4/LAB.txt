@@ -1,0 +1,123 @@
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Transfer()
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    // Get all PatientDepartments for current user
+    var patientDepartments = await _context.PatientDepartments
+        .Include(pd => pd.Patient)
+        .Include(pd => pd.Department)
+        .Where(pd => pd.CreatedByUserId == userId)
+        .ToListAsync();
+
+    if (!patientDepartments.Any())
+    {
+        TempData["Error"] = "No patients to transfer.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    // Create new TransferRequest
+    var transferRequest = new TransferRequest
+    {
+        CreatedByUserId = userId,
+        CreatedOn = DateTime.UtcNow,
+        PatientTransfers = patientDepartments.Select(pd => new PatientTransfer
+        {
+            PatientId = pd.PatientId,
+            DepartmentId = pd.DepartmentId
+        }).ToList()
+    };
+
+    _context.TransferRequests.Add(transferRequest);
+
+    // Remove the transferred PatientDepartments
+    _context.PatientDepartments.RemoveRange(patientDepartments);
+
+    await _context.SaveChangesAsync();
+
+    TempData["Success"] = "Transfer completed successfully!";
+    return RedirectToAction("Details", "TransferRequests", new { id = transferRequest.Id });
+}
+
+
+-------------------------------------------------------------------------------------------------------
+
+public async Task<IActionResult> Index()
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    var patientDepartments = await _context.PatientDepartments
+        .Include(pd => pd.Patient)
+        .Include(pd => pd.Department)
+        .Where(pd => pd.CreatedByUserId == userId)
+        .ToListAsync();  // Properly await the asynchronous operation
+
+    return View(patientDepartments);  // Pass the awaited list
+}
+
+-------------------------------------------------------------------------------------------------------
+
+TRANSFER BUTTON
+<form asp-action="Transfer" method="post" asp-controller="PatientDepartments">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-primary">Transfer All My Patients</button>
+</form>
+
+<!-- Display Success/Error message -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+-------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------
+
+MODELS:
+-------------------------------------------------------------------------------------------------------
+
+PATIENT TRANSFER:
+public class PatientTransfer
+{
+    public int Id { get; set; }
+
+    [Required]
+    public int TransferRequestId { get; set; }
+    public TransferRequest? TransferRequest { get; set; }
+
+    [Required]
+    public int PatientId { get; set; }
+    public Patient? Patient { get; set; }
+
+    [Required]
+    public int DepartmentId { get; set; }
+    public Department? Department { get; set; }
+
+    public DateTime DateTransferred { get; set; } = DateTime.Now;
+}
+-------------------------------------------------------------------------------------------------------
+
+TRANSFER REQUEST:
+public class TransferRequest
+{
+    public int Id { get; set; }
+
+    public DateTime CreatedOn { get; set; } = DateTime.Now;
+
+    [Required]
+    public string? CreatedByUserId { get; set; }
+    public ApplicationUser? CreatedByUser { get; set; }
+
+    public ICollection<PatientTransfer> PatientTransfers { get; set; }
+}
+-------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
